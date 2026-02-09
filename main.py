@@ -1,10 +1,9 @@
-from pprint import pprint
 import pdfplumber
 from report_page import ReportPage
 
 if __name__ == '__main__':
     processed_pages: list[ReportPage] =[]
-    with pdfplumber.open(path_or_fp='detalle.pdf') as pdf:
+    with pdfplumber.open(path_or_fp='detalle.pdf', pages=[1]) as pdf:
             # for page in pdf.pages:
         for i in range(0,len(pdf.pages)):
             page = pdf.pages[i]

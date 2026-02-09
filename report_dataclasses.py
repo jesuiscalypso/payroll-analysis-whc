@@ -55,4 +55,9 @@ class Employee:
     account_number: str | None
 
 
+@dataclass
+class PaymentConcept:
+    id: str
+    name: str
+
 

@@ -1,14 +1,23 @@
 from datetime import datetime
 from decimal import Decimal
 from report_dataclasses import Bank, Employee, Position, Situation
+from report_operation_row import OperationRow
 from utils import extract_excerpt
+from pprint import pprint
 class EmployeeSection:
     __lines: list[str]
     employee: Employee
+    operations: list[OperationRow]
+    totals: str
 
     def __init__(self, lines: list[str]):
         self.__lines = lines
+        pprint(lines)
         self.employee = self.__get_employee(self.__lines)
+        self.operations = [OperationRow(line) for line in self.__get_operation_lines(self.__lines)]
+
+    def __get_operation_lines(self, lines: list[str]):
+        return lines[5:-1]
     
     def __get_employee(self, lines: list[str]):
 
