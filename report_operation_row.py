@@ -14,9 +14,9 @@ class OperationRow:
 
     def __init__(self, line: str):
         self.__line = line
-        self.__get_fields(self.__line)
+        # self.__get_fields(self.__line)
 
-    def __get_fields(self, line: str):
-        print(line)
+    # def __get_fields(self, line: str):
+       # print(line)
 
 

@@ -86,6 +86,6 @@ class ReportBody:
 
     def __get_employee_sections(self, raw_sections: RawPageEmployeeSections):
         if(raw_sections.terminated is False):
-            raise Exception("Cannot parse an unterminated section, please merge with the next page until you have a terminated collection")
+            raise Exception("Cannot parse an unterminated section, please merge with the next unterminated page until you have a terminated collection")
         sections = [EmployeeSection(section) for section in raw_sections.sections]
         return sections

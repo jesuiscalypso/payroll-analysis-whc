@@ -1,23 +1,65 @@
 from datetime import datetime
 from decimal import Decimal
+from typing import List
 from report_dataclasses import Bank, Employee, Position, Situation
 from report_operation_row import OperationRow
 from utils import extract_excerpt
 from pprint import pprint
+import pandas as pd
+
+type RawOperations = list[List[str|None]]
+
 class EmployeeSection:
     __lines: list[str]
+    __raw_operations: RawOperations | None
     employee: Employee
-    operations: list[OperationRow]
-    totals: str
+    operations: pd.DataFrame | None
 
     def __init__(self, lines: list[str]):
         self.__lines = lines
-        pprint(lines)
+        # pprint(lines)
         self.employee = self.__get_employee(self.__lines)
-        self.operations = [OperationRow(line) for line in self.__get_operation_lines(self.__lines)]
+        # self.operations = [OperationRow(line) for line in self.__get_operation_lines(self.__lines)]
+        self.operations = None
+        self.__raw_operations = None
 
     def __get_operation_lines(self, lines: list[str]):
         return lines[5:-1]
+
+    def set_raw_operations(self, ops: RawOperations):
+        self.__raw_operations = self.__clean_raw_operations(ops)
+
+    def process_operations(self):
+        if(self.__raw_operations is None):
+            raise Exception('Attempted to process raw operations when the value is None')
+        # columns = ['CODIGO CONCEPTO', 'CONCEPTO', 'CANTIDAD', 'FACTOR', 'VALOR', 'SALARIO', 'ASIGNACION', 'DEDUCCION', 'SALDO']
+        df = pd.DataFrame(self.__raw_operations) if len(self.__raw_operations) > 0 else pd.DataFrame()
+        self.operations = df
+    
+    def __clean_raw_operations(self, ops: RawOperations):
+        rows_to_keep: RawOperations = []
+        for row in ops:
+            first_cell = row[0]
+            # We should only keep the rows that have some sort of concept number (ie. 10 PAGO)
+            if(first_cell is None or len(first_cell) == 0):
+                continue
+            first_char = first_cell[0]
+            if not(first_char.isdigit()):
+                continue
+            rows_to_keep.append(row)
+
+
+        return rows_to_keep
+
+    def debug_raw_operations(self):
+        pprint(self.__raw_operations)
+
+    def debug_operations(self):
+        print(self.employee.identification)
+        print(self.employee.full_name)
+        print(self.employee.position.name)
+        print(self.operations)
+        print()
     
     def __get_employee(self, lines: list[str]):
 
