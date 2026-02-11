@@ -27,28 +27,31 @@ class EmployeeSection:
         return lines[5:-1]
 
     def set_raw_operations(self, ops: RawOperations):
-        self.__raw_operations = self.__clean_raw_operations(ops)
+        cleaned_rows = self.__clean_raw_operations(ops)
+        # print("cleaned rows", cleaned_rows)
+        self.__raw_operations = cleaned_rows
 
     def process_operations(self):
         if(self.__raw_operations is None):
             raise Exception('Attempted to process raw operations when the value is None')
-        # columns = ['CODIGO CONCEPTO', 'CONCEPTO', 'CANTIDAD', 'FACTOR', 'VALOR', 'SALARIO', 'ASIGNACION', 'DEDUCCION', 'SALDO']
-        df = pd.DataFrame(self.__raw_operations) if len(self.__raw_operations) > 0 else pd.DataFrame()
+        columns = ['CODIGO CONCEPTO', 'CONCEPTO', 'CANTIDAD', 'FACTOR', 'VALOR', 'SALARIO', 'ASIGNACION', 'DEDUCCION', 'SALDO']
+        df = pd.DataFrame(self.__raw_operations, columns=columns) if len(self.__raw_operations) > 0 else pd.DataFrame()
         self.operations = df
     
     def __clean_raw_operations(self, ops: RawOperations):
         rows_to_keep: RawOperations = []
         for row in ops:
             first_cell = row[0]
+            # print(first_cell)
             # We should only keep the rows that have some sort of concept number (ie. 10 PAGO)
             if(first_cell is None or len(first_cell) == 0):
                 continue
             first_char = first_cell[0]
+            # print(first_char)
             if not(first_char.isdigit()):
                 continue
             rows_to_keep.append(row)
-
-
+        # print('rows to keep', rows_to_keep)
         return rows_to_keep
 
     def debug_raw_operations(self):

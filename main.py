@@ -1,4 +1,5 @@
 import itertools
+from pprint import pprint
 from typing import List
 import pdfplumber
 from pdfplumber.page import Page
@@ -16,13 +17,24 @@ type GetTablesReturn = list[list[List[str | None]]]
 
 def get_tables(page: Page) -> GetTablesReturn:
         # Table processing
-        # Manually determine the right boundary for the table
-        rightmost_line = max(c['x1'] for c in page.chars)
-        leftmost_line = min(c['x1'] for c in page.chars)
+        base_char = page.chars[0] # Every character here is the same size so it doesn't really matter which
+        # Manually determine the right and left boundary for the table
+        rightmost_line:int = max(c['x1'] for c in page.chars)
+        leftmost_line: int = min(c['x1'] for c in page.chars)
+        # Explicitly define vertical lines in order to deal with the weirdness that comes with a text table
+        code_line = leftmost_line + (base_char['width'] * 4.5)
+        balance_line = rightmost_line - (base_char['width'] * 10)
+        deduction_line = balance_line - (base_char['width'] * 18)
+        assignment_line = deduction_line - (base_char['width'] * 20)
+        wages_line = assignment_line - (base_char['width'] * 22)
+        value_line = wages_line - (base_char['width'] * 16)
+        factor_line = value_line - (base_char['width'] * 26)
+        quantity_line = factor_line - (base_char['width'] * 14)
+
         table_settings = {
-            'vertical_strategy': 'text',
+            'vertical_strategy': 'explicit',
             'horizontal_strategy': 'text',
-            "explicit_vertical_lines": [leftmost_line, rightmost_line],
+            "explicit_vertical_lines": [leftmost_line, rightmost_line, code_line, balance_line, deduction_line, assignment_line, wages_line, value_line, factor_line, quantity_line],
             "min_words_horizontal":3,
             "snap_x_tolerance": 20,
             "snap_y_tolerance":7,
@@ -53,8 +65,9 @@ def get_tables(page: Page) -> GetTablesReturn:
         for table in tables:
             slice_indices = [0]
             row_index = 0
-            columns_of_interest_index = (1,2,3) 
+            columns_of_interest_index = (1,2,3, 4) 
             extracted_table = table.extract()
+            # print(extracted_table)
             for row in extracted_table: 
                 # print(row)
                 string_of_interest = 'TOTAL'
@@ -111,11 +124,12 @@ if __name__ == '__main__':
             if(num_tables != num_sec):
                 print(f"Employee section {num_sec} and table mismatch {num_tables}")
             else:
-                # print(f"Employee section and table match")
-                zipped_values = itertools.product(report_page.body.sections, tables)
+                # zipped_values = itertools.product(report_page.body.sections, tables)
+                zipped_values = zip(report_page.body.sections, tables)
                 for pair in zipped_values:
-                    pair[0].set_raw_operations(pair[1])
-            
+                    # print("Employee", pair[0])
+                    # print("Raw operations", pair[1])
+                    pair[0].set_raw_operations(pair[1])  
             for section in report_page.body.sections:
                 # section.debug_raw_operations()
                 section.process_operations()
