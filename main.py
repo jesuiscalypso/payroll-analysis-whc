@@ -1,3 +1,4 @@
+from typing import Literal
 import pdfplumber
 from report_page import ReportPage
 import report_page
@@ -6,10 +7,14 @@ from dataclasses import dataclass
 from page_operations import get_report_page, get_tables
 import argparse
 
+import spreadsheet_exporter
+
 @dataclass
 class CliArguments:
     filename: str
     pages_to_process: list[int] | None
+    export_format: Literal['worksheet'] | None
+    export_filename: str
 
 def setup_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -26,6 +31,21 @@ def setup_parser() -> argparse.ArgumentParser:
         help="Array (list) of pages to be processed. Defaults to all pages"
     )
 
+    parser.add_argument(
+        "--export_format",
+        type=str,
+        default="worksheet",
+        nargs="?",
+        choices=["worksheet"],
+    )
+
+    parser.add_argument(
+        "--export_filename",
+        type=str,
+        default="export",
+        nargs="?",
+    )
+
     return parser
 
 def parse_cli_arguments(parser: argparse.ArgumentParser):
@@ -34,7 +54,9 @@ def parse_cli_arguments(parser: argparse.ArgumentParser):
 
     return CliArguments(
         filename=args.filename,
-        pages_to_process=args.pages
+        pages_to_process=args.pages,
+        export_format=args.export_format,
+        export_filename=args.export_filename,
     ) 
 
 if __name__ == '__main__':
@@ -66,13 +88,11 @@ if __name__ == '__main__':
             for section in report_page.body.sections:
                 # section.debug_raw_operations()
                 section.process_operations()
-                section.debug_operations()
+                # section.debug_operations()
             processed_pages.append(report_page)           
 
-
-    section_count = 0
-
-    for page in processed_pages:
-        section_count = section_count + len(page.body.sections)
-
-    print(f"Counted {section_count}")
+    if(arguments.export_format is not None):
+        filename = arguments.export_filename
+        if(arguments.export_format == 'worksheet'):
+            print(f"Exporting {filename}.xlsx")
+            spreadsheet_exporter.export_styled_excel(pages=processed_pages, name=filename)

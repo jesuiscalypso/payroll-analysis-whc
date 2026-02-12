@@ -34,9 +34,34 @@ class EmployeeSection:
     def process_operations(self):
         if(self.__raw_operations is None):
             raise Exception('Attempted to process raw operations when the value is None')
+        should_process_further = len(self.__raw_operations) > 0
         columns = ['CODIGO CONCEPTO', 'CONCEPTO', 'CANTIDAD', 'FACTOR', 'VALOR', 'SALARIO', 'ASIGNACION', 'DEDUCCION', 'SALDO']
-        df = pd.DataFrame(self.__raw_operations, columns=columns) if len(self.__raw_operations) > 0 else pd.DataFrame()
-        self.operations = df
+        df = pd.DataFrame(self.__raw_operations, columns=columns) if should_process_further else pd.DataFrame()
+   
+        if should_process_further: 
+            df['CANTIDAD'] = pd.to_numeric(df['CANTIDAD'].str.replace('.', '').str.replace(',','.'))
+            df['FACTOR'] = pd.to_numeric(df['FACTOR'].str.replace('.', '').str.replace(',','.'))
+            df['VALOR'] = pd.to_numeric(df['VALOR'].str.replace('.', '').str.replace(',','.'))
+            df['SALARIO'] = pd.to_numeric(df['SALARIO'].str.replace('.', '').str.replace(',','.'))
+            df['ASIGNACION'] = pd.to_numeric(df['ASIGNACION'].str.replace('.', '').str.replace(',','.'))
+            df['DEDUCCION'] = pd.to_numeric(df['DEDUCCION'].str.replace('.', '').str.replace(',','.'))
+            df['SALDO'] = pd.to_numeric(df['SALDO'].str.replace('.', '').str.replace(',','.'))
+
+        totals = df.sum(numeric_only=True)
+        print(totals)
+        totals_df = pd.DataFrame([
+            {
+                'CODIGO CONCEPTO': None, 
+                'CONCEPTO': 'TOTAL POR TRABAJADOR', 
+                'CANTIDAD': None, 
+                'FACTOR': None, 
+                'VALOR': None, 
+                'SALARIO': None, 
+                'ASIGNACION': totals['ASIGNACION'], 
+                'DEDUCCION': totals['DEDUCCION'], 
+                'SALDO': totals['SALDO'], 
+            }]) if should_process_further else pd.DataFrame()
+        self.operations = pd.concat([df, totals_df], ignore_index=True)
     
     def __clean_raw_operations(self, ops: RawOperations):
         rows_to_keep: RawOperations = []
@@ -85,7 +110,7 @@ class EmployeeSection:
         # print(position_id, position, group)
 
         third_line = lines[2]
-        situation = extract_excerpt(third_line, "SITUACION:", "SALIDA:")
+        situation_full = extract_excerpt(third_line, "SITUACION:", "SALIDA:")
         situation_departure = extract_excerpt(third_line, "SALIDA:", "REGRESO:")
         situation_return = extract_excerpt(third_line, "REGRESO:")
 
@@ -110,6 +135,9 @@ class EmployeeSection:
 
         date_format = "%d/%m/%Y"
 
+        situation = '' if situation_full is None else situation_full.split("(", 1)[0]
+        situation_comment = '' if situation_full is None else extract_excerpt(situation_full, "(")
+
         return Employee(
             id=id,
             full_name=full_name,
@@ -123,7 +151,7 @@ class EmployeeSection:
             group= group,
             situation= Situation(
                 name=situation,
-                comment="Placeholder", #TODO: Split the situation before creating the object instance
+                comment=situation_comment, 
                 departure_date=datetime.strptime(situation_departure, date_format) if len(situation_departure) > 0 else None,
                 return_date=datetime.strptime(situation_return, date_format) if len(situation_return) > 0 else None,
             ),

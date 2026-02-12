@@ -58,7 +58,7 @@ class ReportBody:
             # We can't find the start of the section in the start of this page, 
             # Which means we're continuiong on from the previous one
             if current_section_relative_index == 0 and line.find("TRABAJADOR:") == -1:
-                print("Could not find trabajador", line)
+                # print("Could not find trabajador", line)
                 terminated = False
                 previous_page_unterminated = True
             # We found the start of the section, flip the flag
