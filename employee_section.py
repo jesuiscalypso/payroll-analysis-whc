@@ -48,7 +48,6 @@ class EmployeeSection:
             df['SALDO'] = pd.to_numeric(df['SALDO'].str.replace('.', '').str.replace(',','.'))
 
         totals = df.sum(numeric_only=True)
-        print(totals)
         totals_df = pd.DataFrame([
             {
                 'CODIGO CONCEPTO': None, 
@@ -136,7 +135,7 @@ class EmployeeSection:
         date_format = "%d/%m/%Y"
 
         situation = '' if situation_full is None else situation_full.split("(", 1)[0]
-        situation_comment = '' if situation_full is None else extract_excerpt(situation_full, "(")
+        situation_comment = '' if situation_full is None else f'({extract_excerpt(situation_full, "(")}'
 
         return Employee(
             id=id,

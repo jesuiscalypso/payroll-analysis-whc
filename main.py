@@ -42,7 +42,7 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--export_filename",
         type=str,
-        default="export",
+        default="nomina",
         nargs="?",
     )
 
@@ -64,9 +64,10 @@ if __name__ == '__main__':
 
     parser = setup_parser()
     arguments = parse_cli_arguments(parser)
-
+    print("Opening PDF file... (this might take a while)")
     with pdfplumber.open(path_or_fp=arguments.filename, pages=arguments.pages_to_process) as pdf:
             # for page in pdf.pages:
+        print("Processing pages...")
         for i in range(0,len(pdf.pages)):
             page = pdf.pages[i]
             # print(f"Processing page {page.page_number}")
@@ -94,5 +95,6 @@ if __name__ == '__main__':
     if(arguments.export_format is not None):
         filename = arguments.export_filename
         if(arguments.export_format == 'worksheet'):
-            print(f"Exporting {filename}.xlsx")
+            print(f"Exporting '{filename}.xlsx'...")
             spreadsheet_exporter.export_styled_excel(pages=processed_pages, name=filename)
+            print("Done!")
