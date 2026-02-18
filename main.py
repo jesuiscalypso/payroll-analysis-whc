@@ -1,5 +1,6 @@
 from typing import Literal
 import pdfplumber
+import bank_account_exporter
 from report_page import ReportPage
 import report_page
 from dataclasses import dataclass
@@ -13,7 +14,7 @@ import spreadsheet_exporter
 class CliArguments:
     filename: str
     pages_to_process: list[int] | None
-    export_format: Literal['worksheet'] | None
+    export_format: Literal['worksheet', 'accounts'] | None
     export_filename: str
 
 def setup_parser() -> argparse.ArgumentParser:
@@ -36,7 +37,7 @@ def setup_parser() -> argparse.ArgumentParser:
         type=str,
         default="worksheet",
         nargs="?",
-        choices=["worksheet"],
+        choices=["worksheet", "accounts"],
     )
 
     parser.add_argument(
@@ -98,3 +99,9 @@ if __name__ == '__main__':
             print(f"Exporting '{filename}.xlsx'...")
             spreadsheet_exporter.export_styled_excel(pages=processed_pages, name=filename)
             print("Done!")
+        elif(arguments.export_format == 'accounts'): 
+            print(f"Exporting '{filename}_cuentas.xlsx'...")
+            bank_account_exporter.export_bank_account_excel(pages=processed_pages, name=filename + "_cuentas")
+            print("Done!")
+
+

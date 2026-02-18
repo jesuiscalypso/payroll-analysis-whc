@@ -5,25 +5,26 @@ from pandas.core.frame import itertools
 from employee_section import EmployeeSection
 from report_page import ReportPage
 
-from pandas import DataFrame
 from openpyxl.utils import get_column_letter
 from openpyxl.utils.dataframe import dataframe_to_rows
 
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-from openpyxl.utils import get_column_letter
 
 from typing import Literal
 
 def export_excel(pages: list[ReportPage], name: str, strategy: Literal['styled', 'unstyled'] = 'styled'):
-    companies = set()
+    companies: set[str] = set()
 
     for page in pages:
         companies.add(page.header.company.id)
 
     if len(companies) > 1:
         raise Exception("Cannot process multi-company reports")
-
-    export_styled_excel(pages, name)
+    
+    if strategy == 'styled':
+        export_styled_excel(pages, name)
+    else:
+        export_unstyled_excel(pages, name)
 
 def export_unstyled_excel(pages: list[ReportPage], name: str):
     workbook = Workbook()
